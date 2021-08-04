@@ -1,0 +1,6 @@
+name: Dru-Sign
+machine_name: drusign
+type: module
+description: A module which provides methods to create Contracts and lets Clients sign them.
+package: Digital Conract Signer
+core_version_requirement: ^8.8 || ^9

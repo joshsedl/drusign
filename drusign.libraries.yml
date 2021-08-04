@@ -1,0 +1,39 @@
+drusign_crypto:
+  version: 1.x
+  js:
+    js/drusignCryptoLibrary.js: {}
+    js/openpgp.js: {}
+init:
+  version: 1.x
+  js:
+    js/init.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - drusign/drusign_crypto
+initGetKeys:
+  version: 1.x
+  js:
+    js/initGetKeys.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - drusign/drusign_crypto
+initAcceptContract:
+  version: 1.x
+  js:
+    js/initAcceptContract.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - drusign/drusign_crypto
+initViewContract:
+  version: 1.x
+  js:
+    js/initViewContract.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - drusign/drusign_crypto
+
+

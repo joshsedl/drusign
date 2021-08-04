@@ -1,0 +1,6 @@
+drusign.key_route:
+  title: 'Keys'
+  description: 'Upload your Encryption/Decryption Keys'
+  parent: main
+  menu_name: main
+  route_name: drusign.key_route
