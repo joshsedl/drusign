@@ -22,7 +22,7 @@
             //Trim string so openpgp can decrypt the Message:
             var trimed_encrypted_text = encrypted_text.trim();
             drusignCrypto.decrypt(trimed_encrypted_text).then((unencrypted_text) => {
-              $("#decodedDiv").text(unencrypted_text);
+              $("#decodedDiv").html(unencrypted_text);
             });
           } else {
             $("div.region--content").hide();

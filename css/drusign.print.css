@@ -1,0 +1,3 @@
+header, footer, aside, nav, iframe, .menu, .hero, .adslot, div.messages-list, div.shortcut-wrapper, #downloadContract {
+  display: none
+}

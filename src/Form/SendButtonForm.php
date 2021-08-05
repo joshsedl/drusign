@@ -2,6 +2,8 @@
 
 namespace Drupal\drusign\Form;
 
+use Drupal\Core\Url;
+use Drupal\Core\Link;
 use Drupal\node\Entity\Node;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -68,6 +70,7 @@ class SendButtonForm extends FormBase {
     $referencedNode = Node::load($referencedNodeId);
     // Get the mail address of the recipient
     $email = $referencedNode->get('field_email')->getString();
+    $verification = $referencedNode->get('field_verifizierung')->getString();
 
     //Set Contract Status to sent
     $node->set('field_status', '1')
@@ -75,9 +78,13 @@ class SendButtonForm extends FormBase {
 
     //Get the url Alias of the node
     $nodeId = $referencedNode->id();
-    $url_alias = \Drupal::service('path_alias.manager')->getAliasByPath('/node/' . $nodeId, \Drupal::currentUser()->getPreferredLangcode()); //Output "/node/29/
-    $hostname = $this->getRequest()->getSchemeAndHttpHost();
-    $url = $hostname . "/drusign/retrieve" . $url_alias;
+
+    // Create a link Object for the E-Mail and convert it to a string
+    $url = Url::fromRoute('drusign.retrieval_route', ['nId' => $nodeId], ['query' => ['v' => $verification]]);
+    $link = Link::fromTextAndUrl("your Contract:", $url);
+    $linkString = $link->toString();
+
+
     $receiverName = $referencedNode->get('field_lastname')->getString();
     $senderName = \Drupal::currentUser()->getAccountName();
 
@@ -89,10 +96,11 @@ class SendButtonForm extends FormBase {
     $key = 'drusign_send_contract';
     $to = $email;
     $langcode = \Drupal::currentUser()->getPreferredLangcode();
-    $params = ["contractUrl" => $url,
-               "receiverName" => $receiverName,
-               "senderName" => $senderName
-              ];
+    $params = [
+      "contractUrl" => $linkString,
+      "receiverName" => $receiverName,
+      "senderName" => $senderName
+    ];
     $reply = NULL;
     $send = true;
 

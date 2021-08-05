@@ -23,6 +23,9 @@ initAcceptContract:
   version: 1.x
   js:
     js/initAcceptContract.js: {}
+  css:
+    theme:
+      css/drusign.print.css: { media: print }
   dependencies:
     - core/jquery
     - core/jquery.once

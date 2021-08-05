@@ -35,7 +35,7 @@ function drusign_mail($key, &$message, $params) {
 
       $message['from'] = \Drupal::config('system.site')->get('mail');
       $message['subject'] = t("Important Contract from {$senderName}", [], $options);
-      $message['body'][] = t("Dear Mr, Mrs {$receiverName},<br/>there is a Contract from {$senderName} for you to sign.<br/> Please follow the following link to receive your Contract: {$contractUrl} ", [], $options);
+      $message['body'][] = t("Dear Mr, Mrs {$receiverName},<br/>there is a Contract from {$senderName} for you to sign.<br/> Please follow the following link to receive {$contractUrl} ", [], $options);
       break;
     case 'drusign_send_accepted':
       $userMailA = $params['userMailA'];

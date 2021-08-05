@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\drusign\Exceptions\NodeNotFoundException;
+use Drupal\drusign\Exceptions\WrongIdentificationError;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -58,6 +59,14 @@ class ContractReceiverForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $nId = NULL) {
     try {
+      // Compare the verification query with the verification field:
+      $request = \Drupal::request();
+      $verificationId = $request->query->get('v');
+      $referencedNode = Node::load($nId);
+      $verificationFieldValue = $referencedNode->get('field_verifizierung')->getString();
+      if (!($verificationId == $verificationFieldValue)) {
+        throw new WrongIdentificationError;
+      }
       // Attaching javascript 'initAcceptContract':
       $form['#attached']['library'][] = 'drusign/initAcceptContract';
 
@@ -100,7 +109,6 @@ class ContractReceiverForm extends FormBase {
       // ------------------------ Contract Received Form and Logic ------------------------
 
       //Logic for the empfaengerDaten #default values:
-      $referencedNode = Node::load($nId);
       $firstname = $referencedNode->get('field_firstname')->getString();
       $name = $referencedNode->get('field_lastname')->getString();
       $firma = $referencedNode->get('field_firma')->getString();
