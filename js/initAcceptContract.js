@@ -15,19 +15,19 @@
           // Change Contract label:
           $decryptElement.prev('div.field__label').text('Ihr Vertrag:');
           // Add decoded Text div:
-          $(this).parent().append(
-            $('<div>')
-              .attr("id", "decodedDiv")
-              .addClass("decodedText")
-              .addClass("drusign-decrypted")
-              .text("No Private Key uploaded!!")
-          );
+          var $decodedElement = $('<div>')
+            .attr("id", "decodedDiv")
+            .addClass("decodedText")
+            .addClass("drusign-decrypted")
+            .text("No Private Key uploaded!!");
+
+          $(this).parent().append($decodedElement);
           if (!helper.empty(window.localStorage.getItem("privateKeyCustomer"))) {
-            var encrypted_text = $('div.text-content div.field__item.drusign-decrypt').text();
+            var encrypted_text = $decryptElement.text();
             //Trim string so openpgp can decrypt the Message:
             var trimed_encrypted_text = encrypted_text.trim();
             drusignCrypto.decryptCustomer(trimed_encrypted_text).then((unencrypted_text) => {
-              $("#decodedDiv").text(unencrypted_text);
+              $decodedElement.text(unencrypted_text);
             });
           } else {
             alert("Note that you need to upload your Private Key to see your Contract!");
@@ -37,8 +37,8 @@
       $("#uploadKey", context).click(function (e) {
         e.preventDefault();
         let privFile = $("#privFileUpload").prop("files")[0];
-        console.log(privFile);
-        fetchAndCache.uploadCustomerPrivateKeyInCache(privFile).then(() => {
+        let passphrase = $('#privFilePassphrase').val();
+        fetchAndCache.uploadCustomerPrivateKeyInCache(privFile, passphrase).then(() => {
           window.location.reload();
         });
       });

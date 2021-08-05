@@ -12,7 +12,8 @@
         e.preventDefault();
         let privFile = $("#privFileUpload").prop("files")[0];
         console.log(privFile);
-        fetchAndCache.uploadPrivateKeyInCache(privFile);
+        let passphrase = $('#privFilePassphrase').val();
+        fetchAndCache.uploadPrivateKeyInCache(privFile, passphrase);
       });
     },
   };

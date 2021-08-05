@@ -6,8 +6,8 @@ use Drupal\node\Entity\Node;
 use Drupal\Core\Form\FormBase;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\drusign\Exceptions\NidNotFoundException;
 use Drupal\drusign\Exceptions\NodeNotFoundException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -77,6 +77,12 @@ class ContractReceiverForm extends FormBase {
         '#type' => 'file',
         '#id' => 'privFileUpload',
       ];
+
+      $form['uploadPrivKeyWrapper']['privFilePassphrase'] = [
+          '#type' => 'password',
+          '#id' => 'privFilePassphrase',
+          '#title' => $this->t('Please enter your private key passphrase:')
+        ];
 
       $form['uploadPrivKeyWrapper']['privKeyFileSubmit'] = [
         '#type' => 'submit',
@@ -155,7 +161,7 @@ class ContractReceiverForm extends FormBase {
       }
       return $form;
     } catch (\Throwable $th) {
-      throw new NIdNotFoundException;
+      throw new NotFoundHttpException;
     }
   }
 

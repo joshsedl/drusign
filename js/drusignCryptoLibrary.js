@@ -67,9 +67,8 @@ var fetchAndCache = {
    * Uploads the Private Key and the Passphrase into the Browser Cache.
    * @async
    */
-  uploadPrivateKeyInCache: async function (element) {
+  uploadPrivateKeyInCache: async function (element, password) {
     let privKey = element;
-    //let privKey = document.getElementById(`${element}`).files[0];
     try {
       privKey = await privKey.text()
       console.log(privKey)
@@ -77,9 +76,9 @@ var fetchAndCache = {
       alert('You have selected NO Private Key!')
       throw err
     }
-    let password = window.prompt(
-      'Please Enter the Passphrase to your Private Key'
-    )
+    // let password = window.prompt(
+    //   'Please Enter the Passphrase to your Private Key'
+    // )
     try {
       // Used to validate the private Key.
       await openpgp.decryptKey({
@@ -93,7 +92,7 @@ var fetchAndCache = {
       throw err
     }
     window.localStorage.setItem('privateKey', privKey)
-    window.localStorage.setItem('privateKeyPassword', password) //TODO: Soll im PW Cache abgespeichert werden!
+    window.localStorage.setItem('privateKeyPassword', password)
     alert('Private Key and Passphrase successful locally cached!')
   },
 
@@ -101,7 +100,7 @@ var fetchAndCache = {
   * Uploads the Private Key and the Passphrase of the Contract Reveiver into the Browser Cache.
   * @async
   */
-  uploadCustomerPrivateKeyInCache: async function (element) {
+  uploadCustomerPrivateKeyInCache: async function (element, password) {
     let privKey = element;
     //let privKey = document.getElementById(`${element}`).files[0];
     try {
@@ -111,9 +110,6 @@ var fetchAndCache = {
       alert('You have selected NO Private Key!')
       throw err
     }
-    let password = window.prompt(
-      'Please Enter the Passphrase to your Private Key'
-    )
     try {
       // Used to validate the private Key.
       await openpgp.decryptKey({

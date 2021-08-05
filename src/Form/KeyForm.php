@@ -63,6 +63,12 @@ class KeyForm extends FormBase {
       '#id' => 'privFileUpload',
     ];
 
+    $form['uploadPrivWrapper']['privFilePassphrase'] = [
+      '#type' => 'password',
+      '#id' => 'privFilePassphrase',
+      '#title' => $this->t('Please enter your private key passphrase:')
+    ];
+
     $form['uploadPrivWrapper']['privFileSubmit'] = [
       '#type' => 'submit',
       '#id' => 'uploadKey',
