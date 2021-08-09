@@ -4,12 +4,12 @@ drusign.key_route:
     _form: '\Drupal\drusign\Form\KeyForm'
     _title: 'Upload Keys'
   requirements:
-    _permission: 'access contracts'
+    _permission: 'access logged'
 drusign.retrieval_route:
   path: '/drusign/retrieve/node/{nId}'
   defaults:
     _form: '\Drupal\drusign\Form\ContractReceiverForm'
     _title: 'Contract Retrieved'
   requirements:
-    _permission: 'access contracts'
+    _permission: 'access anonymous'
 

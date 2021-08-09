@@ -72,20 +72,22 @@ class SendButtonForm extends FormBase {
     $email = $referencedNode->get('field_email')->getString();
     $verification = $referencedNode->get('field_verifizierung')->getString();
 
-    //Set Contract Status to sent
+    // Set Contract Status to sent
     $node->set('field_status', '1')
       ->save();
 
-    //Get the url Alias of the node
+    // Get the url Alias of the node
     $nodeId = $referencedNode->id();
 
-    // Create a link Object for the E-Mail and convert it to a string
+    // Create a link Object for the e-mail and convert it to a string
     $url = Url::fromRoute('drusign.retrieval_route', ['nId' => $nodeId], ['query' => ['v' => $verification]]);
     $link = Link::fromTextAndUrl("your Contract:", $url);
     $linkString = $link->toString();
 
-
+    // Get the contract recipients name:
     $receiverName = $referencedNode->get('field_lastname')->getString();
+
+    // Get the contract holder name:
     $senderName = \Drupal::currentUser()->getAccountName();
 
     /**

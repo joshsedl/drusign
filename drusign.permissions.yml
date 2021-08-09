@@ -1,6 +1,6 @@
-access contracts:
-  title: 'Access Contracts'
-  description: 'Access Contracts and create them'
-access sending:
-  title: 'Access Send-Page'
-  description: 'Access the Send-Page, to send Contracts'
+access logged:
+  title: 'Access Logged in'
+  description: 'Access for logged in Users'
+access anonymous:
+  title: 'Access Anonymous'
+  description: 'Access for anonymous Users'

@@ -10,6 +10,7 @@ init:
   dependencies:
     - core/jquery
     - core/jquery.once
+    - core/drupal
     - drusign/drusign_crypto
 initGetKeys:
   version: 1.x
@@ -18,6 +19,7 @@ initGetKeys:
   dependencies:
     - core/jquery
     - core/jquery.once
+    - core/drupal
     - drusign/drusign_crypto
 initAcceptContract:
   version: 1.x
@@ -29,6 +31,7 @@ initAcceptContract:
   dependencies:
     - core/jquery
     - core/jquery.once
+    - core/drupal
     - drusign/drusign_crypto
 initViewContract:
   version: 1.x
@@ -37,6 +40,7 @@ initViewContract:
   dependencies:
     - core/jquery
     - core/jquery.once
+    - core/drupal
     - drusign/drusign_crypto
 
 

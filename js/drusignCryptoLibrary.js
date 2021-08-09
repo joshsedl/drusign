@@ -1,8 +1,24 @@
+/**
+ * A "helper" variable with several "helper" functions
+ */
 var helper = {
+  /**
+   * Tests if a given mail has the correct mail syntax using regular expressions
+   *
+   * @param {String} email
+   * @returns {Boolean}
+   */
   validateEmail: function (email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
   },
+
+  /**
+   * Checks if a string is empty
+   *
+   * @param {String} data
+   * @returns {Boolean}
+   */
   empty: function (data) {
     if (typeof data === "undefined") {
       return true;
@@ -10,12 +26,19 @@ var helper = {
       return true;
     } else if (!data) {
       return true;
-    } else if (/\S/.test(data) == "") {
+    } else if (/\S/.test(data) == "") { //Checks if a whitespace character exists in data, whitespace character can be a space/tab/new line/vertical character (/\S/ = Regex for whitespace character)
       return true;
     } else {
       return false;
     }
   },
+
+  /**
+   * Creates a random id with a given length.
+   *
+   * @param {Integer} length
+   * @returns {String}
+   */
   makeid: function (length) {
     var result = '';
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -28,10 +51,15 @@ var helper = {
   }
 }
 
+/**
+ * A variable with functions to receive keys and cache them in the browser
+ */
 var fetchAndCache = {
   /**
   * Fetch a Public Key from https://keys.openpgp.org via Mail, without putting it in localStorage
   * @async
+  * @param {String} mail
+  * @returns {String}
   */
   returnFetchPublicKey: async function (mail) {
     if (helper.validateEmail(mail)) {
@@ -50,9 +78,11 @@ var fetchAndCache = {
       throw new Error('This is not an E-Mail Adress!')
     }
   },
+
   /**
-   * Fetch a Public Key from https://keys.openpgp.org via Mail.
+   * Fetch a Public Key from https://keys.openpgp.org via Mail, and put it in the local storage.
    * @async
+   * @param {String} mail
    */
   fetchPublicKey: async function (mail) {
     if (helper.validateEmail(mail)) {
@@ -73,12 +103,14 @@ var fetchAndCache = {
       throw new Error('This is not an E-Mail Adress!')
     }
   },
+
   /**
    * Uploads the Private Key and the Passphrase into the Browser Cache.
    * @async
+   * @param {String} privKey
+   * @param {String} password
    */
-  uploadPrivateKeyInCache: async function (element, password) {
-    let privKey = element;
+  uploadPrivateKeyInCache: async function (privKey, password) {
     try {
       privKey = await privKey.text()
       console.log(privKey)
@@ -86,11 +118,8 @@ var fetchAndCache = {
       alert('You have selected NO Private Key!')
       throw err
     }
-    // let password = window.prompt(
-    //   'Please Enter the Passphrase to your Private Key'
-    // )
     try {
-      // Used to validate the private Key.
+      // Used to validate the private Key:
       await openpgp.decryptKey({
         privateKey: await openpgp.readKey({
           armoredKey: privKey,
@@ -108,11 +137,11 @@ var fetchAndCache = {
 
   /**
   * Uploads the Private Key and the Passphrase of the Contract Reveiver into the Browser Cache.
+  * @param {String} privKey
+  * @param {String} password
   * @async
   */
-  uploadCustomerPrivateKeyInCache: async function (element, password) {
-    let privKey = element;
-    //let privKey = document.getElementById(`${element}`).files[0];
+  uploadCustomerPrivateKeyInCache: async function (privKey, password) {
     try {
       privKey = await privKey.text()
       console.log(privKey)
@@ -121,7 +150,7 @@ var fetchAndCache = {
       throw err
     }
     try {
-      // Used to validate the private Key.
+      // Used to validate the private Key:
       await openpgp.decryptKey({
         privateKey: await openpgp.readKey({
           armoredKey: privKey,
@@ -133,14 +162,18 @@ var fetchAndCache = {
       throw err
     }
     window.localStorage.setItem('privateKeyCustomer', privKey)
-    window.localStorage.setItem('privateKeyPasswordCustomer', password) //TODO: Soll im PW Cache abgespeichert werden!
+    window.localStorage.setItem('privateKeyPasswordCustomer', password)
     alert('Private Key and Passphrase successful locally cached!')
   },
 }
 
-var drusignClientKeys = { //TODO: Entfernen? unnötiger Zwischenschritt
+/**
+ * A variable with functions to get the keys out of the cache
+ */
+var drusignClientKeys = {
   /**
    * Get the Private Key from the Browser Cache.
+   * @returns {String}
    */
   getPrivateKey: function () {
     try {
@@ -153,8 +186,10 @@ var drusignClientKeys = { //TODO: Entfernen? unnötiger Zwischenschritt
       throw err
     }
   },
+
   /**
    * Get the Public Key from the Browser Cache.
+   * @returns {String}
    */
   getPublicKey: function () {
     try {
@@ -167,8 +202,10 @@ var drusignClientKeys = { //TODO: Entfernen? unnötiger Zwischenschritt
       throw err
     }
   },
+
   /**
    * Get the Passphrase from the Browser Cache.
+   * @returns {String}
    */
   getPassphrase: function () {
     try {
@@ -181,12 +218,16 @@ var drusignClientKeys = { //TODO: Entfernen? unnötiger Zwischenschritt
   },
 }
 
+
+/**
+ * A variable with functions to encrypt/decrypt text.
+ */
 var drusignCrypto = {
   /**
    * Encrypts the given Text.
-   *@param {String} unencrypted
-   *@returns {Promise<MaybeStream<String>} Encrypted message.
-   *@async
+   * @param {String} unencrypted
+   * @returns {Promise<MaybeStream<String>} Encrypted message.
+   * @async
    */
   encrypt: async function (unencrypted) {
     const publicKey = await openpgp.readKey({
@@ -200,10 +241,10 @@ var drusignCrypto = {
   },
 
   /**
-   *Decrypts the encrypted Object.
-   *@param {String} encrypted
-   *@returns {Promise<Object>}
-   *@async
+   * Decrypts the encrypted object.
+   * @param {String} encrypted
+   * @returns {Promise<Object>}
+   * @async
    */
   decrypt: async function (encrypted) {
     const privateKey = await openpgp.decryptKey({
@@ -229,6 +270,13 @@ var drusignCrypto = {
     }
   },
 
+  /**
+   * Encrypts the given text with the customer mail
+   * @param {String} unencrypted
+   * @returns {Promise<MaybeStream<String>}
+   *    Encrypted message.
+   * @async
+   */
   encryptCustomer: async function (unencrypted, customerMail) {
     let pubKey = await fetchAndCache.returnFetchPublicKey(customerMail);
     const publicKey = await openpgp.readKey({
@@ -241,6 +289,12 @@ var drusignCrypto = {
     return encrypted
   },
 
+  /**
+   * Decrypts the text for the customer, fetching the keys from his local storage.
+   * @param {String} encrypted
+   * @returns {Promise<Object>}
+   * @async
+   */
   decryptCustomer: async function (encrypted) {
     let privateKeyArmored = window.localStorage.getItem('privateKeyCustomer')
     let passphrase = window.localStorage.getItem('privateKeyPasswordCustomer')

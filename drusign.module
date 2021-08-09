@@ -1,17 +1,13 @@
 <?php
 
-use Drupal\Core\Url;
-use Drupal\node\Entity\Node;
-use \Drupal\redirect\Entity\Redirect;
 use \Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use \Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use \Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 
 /**
  * Implements hook_help().
+ *
+ * The help page of the module
  */
 function drusign_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
@@ -22,22 +18,29 @@ function drusign_help($route_name, RouteMatchInterface $route_match) {
 
 /**
  * Implements hook_mail().
+ *
+ * Creates the content of the e-mails created in the 'ContractReceiverForm' class and the 'SendButtonForm' class.
  */
 function drusign_mail($key, &$message, $params) {
   $options = [
     'langcode' => $message['langcode'],
   ];
   switch ($key) {
+    // The mail containing the link to the contract:
     case 'drusign_send_contract':
+      // Dynamic parameters from the 'SendButtonForm' class:
       $contractUrl = $params["contractUrl"];
       $receiverName = $params["receiverName"];
       $senderName = $params["senderName"];
 
+      // Creating the subject and body of the mail:
       $message['from'] = \Drupal::config('system.site')->get('mail');
       $message['subject'] = t("Important Contract from {$senderName}", [], $options);
       $message['body'][] = t("Dear Mr, Mrs {$receiverName},<br/>there is a Contract from {$senderName} for you to sign.<br/> Please follow the following link to receive {$contractUrl} ", [], $options);
       break;
+    // The mail containing the contract accept message, if a contract was accepted:
     case 'drusign_send_accepted':
+      // Dynamic parameters from the 'ContractReceiverForm' class:
       $userMailA = $params['userMailA'];
       $userNameA = $params['userNameA'];
       $contractNameA = $params['contractNameA'];
@@ -46,7 +49,9 @@ function drusign_mail($key, &$message, $params) {
       $message['subject'] = t("Mr/Ms {$userNameA} accepted your Contract {$contractNameA}!", [], $options);
       $message['body'][] = t("Your Contract {$contractNameA} was accepted by Mr/Ms {$userNameA},<br />if you want to contact him directly write an E-Mail to this adress: {$userMailA}", [], $options);
       break;
+    // The mail containing the contract rejected message, if a contract was rejected:
     case 'drusign_send_rejected':
+      // Dynamic parameters from the 'ContractReceiverForm' class:
       $userMailR = $params['userMailR'];
       $userNameR = $params['userNameR'];
       $contractNameR = $params['contractNameR'];
@@ -58,7 +63,13 @@ function drusign_mail($key, &$message, $params) {
   }
 }
 
+/**
+ * Implements hook_form_alter().
+ *
+ * It can alter different forms.
+ */
 function drusign_form_alter(&$form, &$form_state, $form_id) {
+  // Logic to render a form on the contract creation and edit site:
   $formObject = $form_state->getFormObject();
   if ($formObject instanceof \Drupal\Core\Entity\EntityFormInterface) {
     $entity = $formObject->getEntity();
@@ -68,6 +79,9 @@ function drusign_form_alter(&$form, &$form_state, $form_id) {
       && in_array($entity->bundle(), ['vertrag'])
       && ($operation === 'edit' || $operation === 'default')
     ) {
+      // Render a textarea where the user can type his contract content in on
+      // submission the content of this field gets encrypted and saved in the
+      // 'original' textarea of the contract node:
       $form['#attached']['library'][] = 'drusign/init';
       $form['unencrypted_text'][] = [
         '#title' => t('Vertragsinhalt'),
@@ -77,27 +91,14 @@ function drusign_form_alter(&$form, &$form_state, $form_id) {
           'id' => 'unencrypted_text'
         ]
       ];
-
-      // if($operation === 'default'){
-      // $form['actions']['saveAndSend'] = [
-      //   '#type' => 'submit',
-      //   '#value' => t('Save and go to "Send" Page'),
-      //   '#weight' => 50,
-      //   '#submit' => $form['actions']['submit']['#submit'],
-      // ];
-      // $form['actions']['saveAndSend']['#submit'][] = "goToSendPage";
-    // }
     }
   }
 }
 
-// function goToSendPage(){
-//
-// }
-
-
 /**
  * Implements hook_entity_extra_field_info().
+ *
+ * Used in combination with 'drusign_node_view' to render the 'drusign_send_form' as a field on the contract view page of each contract.
  */
 function drusign_entity_extra_field_info() {
   $extra = array();
@@ -112,6 +113,8 @@ function drusign_entity_extra_field_info() {
 
 /**
  * Implements hook_node_view().
+ *
+ * Used in combination with 'drusign_entity_extra_field_info' to render the 'drusign_send_form' as a field on the contract view page of each contract.
  */
 function drusign_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
   if ($display->getComponent('send_field')) {

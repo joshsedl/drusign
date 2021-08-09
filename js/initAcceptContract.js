@@ -1,18 +1,16 @@
 (function ($, Drupal) {
   Drupal.behaviors.drusignAcceptContract = {
     attach: function (context, settings) {
-      // ## ON LOAD: ###
-      // Runs only once, see https://www.drupal.org/forum/support/module-development-and-code-questions/2018-06-15/run-js-funtion-once-not-attach-once
+      // On load, run once:
       $('.drusign-decrypt', context)
         .once("drusign-decrypted")
         .each(function () {
-          console.log('init');
           var $decryptElement = $(this);
-
+          console.log("hello");
           // Hide Vertragsempfänger name and encrypted contract content:
           $decryptElement.parents('article:first').find('h2.node__title').hide();
           $decryptElement.hide();
-          // Hide "Kundeninhalt" Contract label:
+          // Hide "Contract Recipient Content" Contract label:
           $decryptElement.prev('div.field__label').hide();
           // Add decoded Text div:
           var $decodedElement = $('<div>')
@@ -20,11 +18,12 @@
             .addClass("decodedText")
             .addClass("drusign-decrypted")
             .text("No Private Key uploaded!!");
-
+          // Append div to "kundeninhalt" field aka the 'contract recipient content':
           $(this).parent().append($decodedElement);
+          // Encrypt the contract if the correct privateKey was fetched:
           if (!helper.empty(window.localStorage.getItem("privateKeyCustomer"))) {
             var encrypted_text = $decryptElement.text();
-            //Trim string so openpgp can decrypt the Message:
+            // Trim string so openpgp can decrypt the message:
             var trimed_encrypted_text = encrypted_text.trim();
             drusignCrypto.decryptCustomer(trimed_encrypted_text).then((unencrypted_text) => {
               $decodedElement.html(unencrypted_text);
@@ -33,7 +32,7 @@
             alert("Note that you need to upload your Private Key to see your Contract!");
           }
         });
-        //Use File as PrivateKey Input and save the privateKey with the passphrase in the Cache
+        // Use File as PrivateKey Input and save the privateKey with the passphrase in the cache:
       $("#uploadKey", context).click(function (e) {
         e.preventDefault();
         let privFile = $("#privFileUpload").prop("files")[0];
@@ -42,7 +41,7 @@
           window.location.reload();
         });
       });
-      //Save Contract Locally Logic
+      // Print/Download the contract:
       $("#downloadContract", context).click(function (e) {
         e.preventDefault();
         window.print();

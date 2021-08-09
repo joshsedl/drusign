@@ -36,13 +36,13 @@ class KeyForm extends FormBase {
       '#type' => 'details',
       '#open' => TRUE,
       '#title' => $this->t('Fetch Your Public Key'),
-      '#description' => $this->t('Your Key will be fetched from "keys.openpgp.org" and loaded in your Browsers local storage.<br/>Please provide your Public Key on "key.openpgp.org".')
+      '#description' => $this->t('Your Key will be fetched from "keys.openpgp.org" and loaded into your Browsers local storage.<br/>Please provide your Public Key on "key.openpgp.org".')
     ];
 
     $form['fetchPubWrapper']['fetchPubMailField'] = [
       '#type' => 'email',
       '#id' => 'mailField',
-      '#title' => $this->t('Please Enter your E-Mail Adress to fetch your public Key')
+      '#title' => $this->t('Please Enter your E-Mail Adress to fetch your public Key:')
     ];
 
     $form['fetchPubWrapper']['fetchPubSubmit'] = [

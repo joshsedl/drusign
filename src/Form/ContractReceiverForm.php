@@ -9,7 +9,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\drusign\Exceptions\NodeNotFoundException;
 use Drupal\drusign\Exceptions\WrongIdentificationError;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Class ContractReceiverForm
@@ -33,20 +32,13 @@ class ContractReceiverForm extends FormBase {
    * {@inheritdoc}
    *
    * @param int $entity_id
-   * @throws AccessDeniedHttpException
    * @return array
    */
   public function buildNode($entity_id): array {
-    $current_user = \Drupal::currentUser();
-    $user = \Drupal\user\Entity\User::load($current_user->id());
     $entity = \Drupal::entityTypeManager()->getStorage('node')->load($entity_id);
-    if ($entity->access($user)) //TODO: Aufpassen! Abfrage könnte nach hinten losgehen, wenn der Kunde kein Zugriff mehr hier hat!
-    {
-      $view_builder = \Drupal::entityTypeManager()->getViewBuilder('node');
-      $pre_render = $view_builder->view($entity, 'vertragsempfaenger_ans');
-      return $pre_render;
-    }
-    throw new AccessDeniedHttpException("You don't have access to this Node!!");
+    $view_builder = \Drupal::entityTypeManager()->getViewBuilder('node');
+    $pre_render = $view_builder->view($entity, 'vertragsempfaenger_ans');
+    return $pre_render;
   }
 
   /**
@@ -56,13 +48,17 @@ class ContractReceiverForm extends FormBase {
    *    The node id.
    * @return array
    *    The render Array for the Form.
+   * @throws WrongIdentificationError
+   * @throws NotFoundHttpException
    */
   public function buildForm(array $form, FormStateInterface $form_state, $nId = NULL) {
     try {
-      // Compare the verification query with the verification field:
+      // Load the verification id from the Get Request:
       $request = \Drupal::request();
       $verificationId = $request->query->get('v');
+      // Load the current contract recipient node:
       $referencedNode = Node::load($nId);
+      // Compare the verification id from the request, with the verification field of the contract recipient:
       $verificationFieldValue = $referencedNode->get('field_verifizierung')->getString();
       if (!($verificationId == $verificationFieldValue)) {
         throw new WrongIdentificationError;
@@ -88,10 +84,10 @@ class ContractReceiverForm extends FormBase {
       ];
 
       $form['uploadPrivKeyWrapper']['privFilePassphrase'] = [
-          '#type' => 'password',
-          '#id' => 'privFilePassphrase',
-          '#title' => $this->t('Please enter your private key passphrase:')
-        ];
+        '#type' => 'password',
+        '#id' => 'privFilePassphrase',
+        '#title' => $this->t('Please enter your private key passphrase:')
+      ];
 
       $form['uploadPrivKeyWrapper']['privKeyFileSubmit'] = [
         '#type' => 'submit',
@@ -101,14 +97,14 @@ class ContractReceiverForm extends FormBase {
         )
       ];
 
-      // Render the 'Vertragsempfänger' node:
+      // Render the 'Contract Recipient' node, based on the nId:
       $form['my_node'] = $this->buildNode($nId);
-      // Workaround for core bug #2897377.
+      // Workaround for core bug #2897377:
       // Also see https://www.drupal.org/node/3032530.
       $form['#id'] = Html::getId($form_state->getBuildInfo()['form_id']);
       // ------------------------ Contract Received Form and Logic ------------------------
 
-      //Logic for the empfaengerDaten #default values:
+      // Logic for the empfaengerDaten #default values:
       $firstname = $referencedNode->get('field_firstname')->getString();
       $name = $referencedNode->get('field_lastname')->getString();
       $firma = $referencedNode->get('field_firma')->getString();
@@ -137,7 +133,6 @@ class ContractReceiverForm extends FormBase {
         '#default_value' => $firma,
         '#title' => $this->t('Your company')
       ];
-
       $form['vertragAkzeptieren'] = [
         '#type' => 'submit',
         '#id' => 'vertragAkzeptieren',
@@ -193,26 +188,33 @@ class ContractReceiverForm extends FormBase {
    *
    * @param array $form
    * @param FormStateInterface $form_state
+   * @throws NodeNotFoundException
+   * @throws NotFoundHttpException
    * @return array
    */
   public function contractAcceptedCallback(array $form, FormStateInterface $form_state) {
-    // Get the 'vertrags_empfaenger' node:
-    $node = $form['my_node']['#node'];
-    $this->sendContractAcceptedMail($node);
+    try {
+      // Get the 'vertrags_empfaenger' node:
+      $node = $form['my_node']['#node'];
+      $this->sendContractAcceptedMail($node);
 
-    if ($parent_node = $this->getParentNode($node)) {
-      // Set the contract status to accepted:
-      $parent_node->set('field_status', '2')
-        ->save();
-    } else {
-      // If the parent node is null throw an error:
-      throw new NodeNotFoundException;
+      if ($parent_node = $this->getParentNode($node)) {
+        // Set the contract status to accepted:
+        $parent_node->set('field_status', '2')
+          ->save();
+      } else {
+        // If the parent node is null throw an error:
+        throw new NodeNotFoundException;
+      }
+      // Hide all the unnecessary forms:
+      $form['vertragAkzeptieren'] = [];
+      $form['vertragAblehnen'] = [];
+      $form['empfaengerDaten'] = [];
+      $form['uploadPrivKeyWrapper'] = [];
+      return $form;
+    } catch (\Throwable $th) {
+      throw new NotFoundHttpException;
     }
-    $form['vertragAkzeptieren'] = [];
-    $form['vertragAblehnen'] = [];
-    $form['empfaengerDaten'] = [];
-    $form['uploadPrivKeyWrapper'] = [];
-    return $form;
   }
 
   /**
@@ -220,26 +222,32 @@ class ContractReceiverForm extends FormBase {
    *
    * @param array $form
    * @param FormStateInterface $form_state
+   * @throws NodeNotFoundException
+   * @throws NotFoundHttpException
    * @return array
    */
   public function contractRejectedCallback(array $form, FormStateInterface $form_state) {
-    // Get the 'vertrags_empfaenger' node:
-    $node = $form['my_node']['#node'];
-    $this->sendContractRejectedMail($node);
-    if ($parent_node = $this->getParentNode($node)) {
-      // Set the contract status to rejected:
-      $parent_node->set('field_status', '3')
-        ->save();
-    } else {
-      // If the parent node is null throw an error:
-      throw new NodeNotFoundException;
+    try {
+      // Get the 'vertrags_empfaenger' node:
+      $node = $form['my_node']['#node'];
+      $this->sendContractRejectedMail($node);
+      if ($parent_node = $this->getParentNode($node)) {
+        // Set the contract status to rejected:
+        $parent_node->set('field_status', '3')
+          ->save();
+      } else {
+        // If the parent node is null throw an error:
+        throw new NodeNotFoundException;
+      }
+      // Hide all the unnecessary forms:
+      $form['vertragAkzeptieren'] = [];
+      $form['vertragAblehnen'] = [];
+      $form['empfaengerDaten'] = [];
+      $form['uploadPrivKeyWrapper'] = [];
+      return $form;
+    } catch (\Throwable $th) {
+      throw new NotFoundHttpException;
     }
-    // Hide the other not important forms:
-    $form['vertragAkzeptieren'] = [];
-    $form['vertragAblehnen'] = [];
-    $form['empfaengerDaten'] = [];
-    $form['uploadPrivKeyWrapper'] = [];
-    return $form;
   }
 
   /**
@@ -250,7 +258,7 @@ class ContractReceiverForm extends FormBase {
    * @return object
    *    The parent node.
    */
-  public function getParentNode($node){
+  public function getParentNode($node) {
     //Get the first (and only) parent_node out of the parent node array, multiple entries are not possible, since we always create a new 'vertrags_empfaenger' on every 'vertrag' creation:
     $parent_node_array = \Drupal::entityTypeManager()
       ->getListBuilder('node')
@@ -261,8 +269,8 @@ class ContractReceiverForm extends FormBase {
           'field_vertrags_empfaenger' => $node->id(),
         ]
       );
-      $parent_node = reset($parent_node_array);
-      return $parent_node;
+    $parent_node = reset($parent_node_array);
+    return $parent_node;
   }
 
   /**
