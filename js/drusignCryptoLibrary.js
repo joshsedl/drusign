@@ -91,7 +91,6 @@ var fetchAndCache = {
       })
       if (data.status === 200) {
         let pubKey = await data.text()
-        console.log(pubKey)
         window.localStorage.setItem('publicKey', pubKey)
         alert('Public Key successful fetched in local Browser cache!')
       } else {
@@ -113,7 +112,6 @@ var fetchAndCache = {
   uploadPrivateKeyInCache: async function (privKey, password) {
     try {
       privKey = await privKey.text()
-      console.log(privKey)
     } catch (err) {
       alert('You have selected NO Private Key!')
       throw err
@@ -144,7 +142,6 @@ var fetchAndCache = {
   uploadCustomerPrivateKeyInCache: async function (privKey, password) {
     try {
       privKey = await privKey.text()
-      console.log(privKey)
     } catch (err) {
       alert('You have selected NO Private Key!')
       throw err

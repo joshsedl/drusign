@@ -48,7 +48,7 @@
             var vertragsbezeichnung = $('#edit-title-0-value', $form).val();
             var unencrypted_text = $("textarea#unencrypted_text", $form).val();
             // Encrypt the unencrypted text with the title of the contract for the "vertragsempfänger" node, since we do not have access to the title on that node:
-            var unencryptedTextWithTitle = "<h2>" + vertragsbezeichnung+ "</h2>" + unencrypted_text;
+            var unencryptedTextWithTitle = "******" + vertragsbezeichnung+ "******" + unencrypted_text;
             var customerMail = $('#edit-field-vertrags-empfaenger-0-inline-entity-form-field-email-0-value', $form).val();
             // Create a random verification string and put the random string in the 'verifizierung' field:
             var verificationString = helper.makeid(12);

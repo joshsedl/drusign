@@ -60,7 +60,7 @@ class ContractReceiverForm extends FormBase {
       $referencedNode = Node::load($nId);
       // Compare the verification id from the request, with the verification field of the contract recipient:
       $verificationFieldValue = $referencedNode->get('field_verifizierung')->getString();
-      if (!($verificationId == $verificationFieldValue)) {
+      if ($verificationId != $verificationFieldValue) {
         throw new WrongIdentificationError;
       }
       // Attaching javascript 'initAcceptContract':
@@ -81,6 +81,7 @@ class ContractReceiverForm extends FormBase {
       $form['uploadPrivKeyWrapper']['privKeyFileUpload'] = [
         '#type' => 'file',
         '#id' => 'privFileUpload',
+        '#description' => $this->t('Please only upload files containing your private key in an .asc or .txt format')
       ];
 
       $form['uploadPrivKeyWrapper']['privFilePassphrase'] = [
@@ -97,12 +98,17 @@ class ContractReceiverForm extends FormBase {
         )
       ];
 
+      // ------------------------ Contract Received Form and Logic ------------------------
+      $form['contractData'] = [
+        '#type' => 'details',
+        '#open' => TRUE,
+        '#title' => $this->t('Your Contact'),
+      ];
       // Render the 'Contract Recipient' node, based on the nId:
-      $form['my_node'] = $this->buildNode($nId);
+      $form['contractData']['my_node'] = $this->buildNode($nId);
       // Workaround for core bug #2897377:
       // Also see https://www.drupal.org/node/3032530.
       $form['#id'] = Html::getId($form_state->getBuildInfo()['form_id']);
-      // ------------------------ Contract Received Form and Logic ------------------------
 
       // Logic for the empfaengerDaten #default values:
       $firstname = $referencedNode->get('field_firstname')->getString();
@@ -112,24 +118,26 @@ class ContractReceiverForm extends FormBase {
       $form['empfaengerDaten'] = [
         '#type' => 'details',
         '#open' => TRUE,
-        '#title' => $this->t('Your Contact Data'),
-        '#description' => $this->t('Please verify your Contact Data before continuing!')
+        '#title' => $this->t('Your Personal Data'),
       ];
       $form['empfaengerDaten']['empfaengerName'] = [
         '#type' => 'textfield',
         '#id' => 'empfaengerName',
+        '#attributes' => ['readonly' => TRUE],
         '#default_value' => $name,
         '#title' => $this->t('Your name')
       ];
       $form['empfaengerDaten']['empfaengerVorname'] = [
         '#type' => 'textfield',
         '#id' => 'empfaengerVorname',
+        '#attributes' => ['readonly' => TRUE],
         '#default_value' => $firstname,
         '#title' => $this->t('Your pre-name')
       ];
       $form['empfaengerDaten']['empfaengerFirma'] = [
         '#type' => 'textfield',
         '#id' => 'empfaengerFirma',
+        '#attributes' => ['readonly' => TRUE],
         '#default_value' => $firma,
         '#title' => $this->t('Your company')
       ];
@@ -195,7 +203,7 @@ class ContractReceiverForm extends FormBase {
   public function contractAcceptedCallback(array $form, FormStateInterface $form_state) {
     try {
       // Get the 'vertrags_empfaenger' node:
-      $node = $form['my_node']['#node'];
+      $node = $form['contractData']['my_node']['#node'];
       $this->sendContractAcceptedMail($node);
 
       if ($parent_node = $this->getParentNode($node)) {
@@ -229,7 +237,7 @@ class ContractReceiverForm extends FormBase {
   public function contractRejectedCallback(array $form, FormStateInterface $form_state) {
     try {
       // Get the 'vertrags_empfaenger' node:
-      $node = $form['my_node']['#node'];
+      $node = $form['contractData']['my_node']['#node'];
       $this->sendContractRejectedMail($node);
       if ($parent_node = $this->getParentNode($node)) {
         // Set the contract status to rejected:

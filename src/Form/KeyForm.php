@@ -16,6 +16,7 @@ class KeyForm extends FormBase {
 
   /**
    * Get the Form id of this specific Form.
+   * {@inheritdoc}
    *
    * @return string
    */
@@ -61,6 +62,7 @@ class KeyForm extends FormBase {
     $form['uploadPrivWrapper']['privFileUpload'] = [
       '#type' => 'file',
       '#id' => 'privFileUpload',
+      '#description' => $this->t('Please only upload files containing your private key in an .asc or .txt format')
     ];
 
     $form['uploadPrivWrapper']['privFilePassphrase'] = [

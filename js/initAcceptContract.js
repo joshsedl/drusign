@@ -6,7 +6,6 @@
         .once("drusign-decrypted")
         .each(function () {
           var $decryptElement = $(this);
-          console.log("hello");
           // Hide Vertragsempfänger name and encrypted contract content:
           $decryptElement.parents('article:first').find('h2.node__title').hide();
           $decryptElement.hide();
@@ -26,7 +25,7 @@
             // Trim string so openpgp can decrypt the message:
             var trimed_encrypted_text = encrypted_text.trim();
             drusignCrypto.decryptCustomer(trimed_encrypted_text).then((unencrypted_text) => {
-              $decodedElement.html(unencrypted_text);
+              $decodedElement.text(unencrypted_text);
             });
           } else {
             alert("Note that you need to upload your Private Key to see your Contract!");
